@@ -1,0 +1,55 @@
+//3.1 Queue
+procedure enqueue(int queue[], int tailpointer, int item)
+// Error checks (input)
+    if item = 0 then
+        error("Item added to queue is empty (0).")
+    fi item = 0
+    if queue[tailpointer] != 0 then
+        error("Queue is full. Cannot enqueue item.")
+    fi queue[tailpointer] != 0
+
+    // Adds the item to the queue spot and empties the item
+    local int tmp = item
+        queue[tailpointer] += tmp
+        item -= tmp
+    delocal int tmp = queue[tailpointer]
+
+    // Goes to next queue spot
+    if tailpointer + 1 != size(queue) then
+        tailpointer += 1
+    else
+        tailpointer -= size(queue) - 1
+    fi tailpointer != 0
+
+procedure dequeue(int queue[], int headpointer, int placeholder)
+// Error checks (input)
+    if placeholder != 0 then
+        error("Placeholder not empty (0).")
+    fi placeholder != 0
+    if queue[headpointer] = 0 then
+        error("Queue is empty. Tried to remove item from empty queue.")
+    fi queue[headpointer] = 0
+
+    // Loads the queue item into the placeholder and empties the queue spot
+    local int tmp = queue[headpointer]
+        placeholder += tmp
+        queue[headpointer] -= tmp
+    delocal int tmp = placeholder
+
+    // Goes to next queue spot
+    if headpointer + 1 != size(queue) then
+        headpointer += 1
+    else
+        headpointer -= size(queue) - 1
+    fi headpointer != 0
+
+
+procedure main()  
+    int queue[10] = {0}
+    int headpointer = 0
+    int tailpointer = 0
+    int addItem = 100
+    int newItem = 0
+    call enqueue(queue,tailpointer,addItem)
+    call dequeue(queue,headpointer,newItem)
+

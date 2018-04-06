@@ -1,0 +1,212 @@
+
+//4.2.3 Kruskal with disjoint set
+procedure partition(int a[][], int l, int r, int q, int p[])
+  local int t[r-l][3] = {{0}}, int p_t[r-l] = {0}
+    local int j = l
+      from  j = l
+      loop  if a[j][0] <= a[r][0] then
+              q += 1
+              a[q][0] <=> a[j][0]      // move a[j] to a[q]
+              a[q][1] <=> a[j][1]
+              a[q][2] <=> a[j][2]
+              p[q] <=> p[j]       // move p[j] to p[q]
+            else
+              t[j-q-1][0] <=> a[j][0]   // move a[j] to t[j-q-1]
+              t[j-q-1][1] <=> a[j][1]
+              t[j-q-1][2] <=> a[j][2]
+              p_t[j-q-1] <=> p[j] // move p[j] to p\_t[j-q-1]
+            fi (q >= l) && (j-q-1 = -1 || p[q] > p_t[j-q-1])
+            j += 1
+      until j = r + 1
+    delocal int j = r + 1
+  
+    local int k = 0
+      from  k = 0                 // move t[0..r-q-1] to a[q+1..r]
+      loop  a[q+1+k][0] <=> t[k][0]     // move t[k] to a[q+1+k]
+            a[q+1+k][1] <=> t[k][1]
+            a[q+1+k][2] <=> t[k][2]
+            p[q+1+k] <=> p_t[k]   // move p_t[k] to p[q+1+k]
+            k += 1
+      until k = r - q
+    delocal int k = r - q
+  delocal int t[r-l][3] = {{0}}, int p_t[r-l] = {0}
+
+procedure qsort(int a[][], int l, int r, int p[])
+  if l < r then
+    local int q = l - 1           // q remembers where to divide
+      call partition(a,l,r,q,p)
+      call qsort(a,l,q-1,p)
+      call qsort(a,q+1,r,p)
+      uncall max(q,p,l,r)         // zero clear q
+    delocal int q = 0
+  fi l < r
+
+// xor-copy to p the index of the maximum of ord[l..r]
+procedure max(int p, int ord[], int l, int r)
+  local stack gb = nil
+    local int m = 0
+      call max_sub(m,ord,l,r,gb)
+      p ^= m
+      uncall max_sub(m,ord,l,r,gb)
+    delocal int m = 0
+  delocal stack gb = nil
+
+procedure max_sub(int m, int ord[], int l, int r, stack gb)
+  m ^= l
+  local int i = l + 1
+    from  i = l + 1
+    loop  if ord[i] >= ord[m] then
+            push(m,gb)
+            m ^= i
+            push(1,gb)
+          else
+            push(0,gb)
+          fi top(gb) = 1
+          i += 1
+    until i = r + 1
+  delocal int i = r + 1
+// Setting to p[] identity permutation of length n
+procedure id_perm(int p[], int n)
+  local int i = 0
+    from  i = 0
+    loop  p[i] ^= i
+          i += 1
+    until i = n
+  delocal int i = n
+  
+// need one more paramenter:edgecount to delocal s. There's a fault in the original code
+procedure extractedges(int G[], int edgelist[],int edgecount)
+    local int i = 0, int j = 0, int s = 0
+    from i = 0 do
+        from j = i do
+            if G[i][j] != 0 then
+                edgelist[s][0] += G[i][j]
+                edgelist[s][1] += i+1
+                edgelist[s][2] += j+1
+                s += 1
+            fi G[i][j] != 0
+            j += 1
+        until j = size(G)
+        i += 1
+        j -= size(G) -i
+    until i = size(G)
+    delocal int i = size(G), int j = size(G), int s = edgecount
+
+procedure makeset(int x, int nodes[], int sets[])
+    nodes[x][0] -= 1 // Next element, initially points to no element 
+    nodes[x][1] += x // First, Part of its own set
+    sets[x][0] += x // Head
+    sets[x][1] += x // Tail
+    sets[x][2] += 1 // Length  !!!different from the set structure in essay where sets[x][1] is length
+    
+procedure checksets(int x, int y, int nodes[], int found)
+    if nodes[x][1] = nodes[y][1] then
+        found += 1
+    fi nodes[x][1] = nodes[y][1]
+
+procedure union(int x, int y, int nodes[], int sets[], int garbage[], int counter)
+    if sets[nodes[y][1]][2] = 0 || sets[nodes[x][1]][2] = 0 then 
+        error("Trying to perform union with an empty set")
+    fi sets[nodes[y][1]][2] = 0 || sets[nodes[x][1]][2] = 0
+    
+    //Calculate which set is added to the other
+    local int z = 0
+    if sets[nodes[x][1]][2] >= sets[nodes[y][1]][2] then
+        garbage[counter][3] += y
+        z += x
+    else
+        garbage[counter][3] += x
+        z += y
+    fi sets[nodes[x][1]][2] >= sets[nodes[y][1]][2]
+        
+    // store garbage
+    garbage[counter][0] += sets[nodes[garbage[counter][3]][1]][1]   // tail of first set
+    garbage[counter][1] += sets[nodes[z][1]][0] // Head of second set
+    garbage[counter][2] += sets[nodes[z][1]][2] // Length of second set
+        
+    // Set the tail of the first set to point to the head of the second set
+    nodes[garbage[counter][3]][0] += garbage[counter][1] + 1
+    
+    // Set the tail of the first set to the tail of the second set
+    sets[nodes[garbage[counter][3]][1]][1] -= garbage[counter][0]
+    sets[nodes[garbage[counter][3]][1]][1] += sets[nodes[z][1]][1]
+        
+    // Set all values in the second set to 0
+    sets[nodes[z][1]][0] -= garbage[counter][1]
+    sets[nodes[z][1]][1] -= sets[nodes[garbage[counter][3]][1]][1]
+    sets[nodes[z][1]][2] -= garbage[counter][2]
+        
+    call searchnodes(garbage[counter][1], nodes[garbage[counter][3]][1],garbage[counter][1], nodes, sets)
+        
+    // Add the length of the second set to the length of the first set
+    sets[nodes[garbage[counter][3]][1]][2] += garbage[counter][2]
+    if garbage[counter][3] = x then
+        z -= y
+    else
+        z -= x
+    fi garbage[counter][3] = x
+    delocal int z = 0
+    counter += 1
+
+procedure searchnodes(int i, int newset, int oldset, int nodes[], int sets[])
+    nodes[i][1] -= oldset
+    nodes[i][1] += newset
+    if nodes[i][0] != -1 then
+        call searchnodes(nodes[i][0],newset,oldset,nodes,sets)
+    fi nodes[i][0] != -1
+    
+procedure mstkruskal(int G[], int edgecount, int A[],int nodes[], int set[], int garbage[])
+    // Initialize variables for loop, checksets and split
+    //Gather all of the edges into a list
+    local int i = 0, int found = 0, int counter = 0, int sets[size(G)][3] = {{0}}
+    local int edges[edgecount][3] = {{0}}
+    call extractedges(G,edges,edgecount)
+    
+    local int p[edgecount] = {0}
+    call id_perm(p,edgecount)
+    call qsort(edges, 0, edgecount-1, p)
+    
+    from i = 0 do //create the edgeset
+        call makeset(i,nodes,sets)
+        i += 1
+    until i = size(G)
+    i -= size(G)
+    
+    from i = 0 do  // Go through all edges
+        //checksets checks two nodes combined by an edge are in the same subset
+        call checksets(edges[i][1]-1, edges[i][2]-1,nodes,found)
+        if found = 0 then
+            //if they aren't, the two nodes are connected
+            uncall checksets(edges[i][1]-1, edges[i][2]-1, nodes, found)
+            A[edges[i][1]-1][edges[i][2]-1] += edges[i][0]
+            A[edges[i][2]-1][edges[i][1]-1] += edges[i][0]
+            local int x = edges[i][1]-1, int y = edges[i][2]-1
+            call union(x,y,nodes, sets, garbage, counter)
+            delocal int x = edges[i][1]-1, int y = edges[i][2]-1
+        else
+            uncall checksets(edges[i][1]-1, edges[i][2]-1, nodes, found)
+        fi A[edges[i][1]-1][edges[i][2]-1] != 0
+        i += 1
+    until i = edgecount
+    
+    sets[nodes[0][1]][0] <=> set[0]
+    sets[nodes[0][1]][1] <=> set[1]
+    sets[nodes[0][1]][2] <=> set[2]
+    
+    uncall qsort(edges,0,edgecount-1,p)
+    uncall id_perm(p, edgecount)
+    uncall extractedges(G,edges,edgecount)
+    
+    delocal int p[edgecount] = {0}
+    delocal int edges[edgecount][3]={{0}}
+    delocal int i = edgecount, int found = 0, int counter = size(G) - 1, int sets[size(G)][3]={{0}}
+    
+    
+procedure main()
+    int G[][] = {{0,4,0,0,0,0,0,8,0},{4,0,8,0,0,0,0,11,0},{0,8,0,7,0,4,0,0,2},{0,0,7,0,9,14,0,0,0},{0,0,0,9,0,10,0,0,0},{0,0,4,14,10,0,2,0,0},{0,0,0,0,0,2,0,1,6},{8,11,0,0,0,0,1,0,7},{0,0,2,0,0,0,6,7,0}}
+    int A[size(G)][size(G)] = {{0}}
+    int nodes[size(G)][2] = {{0}}
+    int set[3] = {0}
+    int garbage[size(G)-1][4] = {{0}}
+    call mstkruskal(G,14,A,nodes,set,garbage)
+

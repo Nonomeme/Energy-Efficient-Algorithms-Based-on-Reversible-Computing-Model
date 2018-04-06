@@ -1,0 +1,255 @@
+//3.3 Binary search tree
+procedure inorderWalk(int nodes[], int root, int result[],int tmp[])
+    if root != -1 then
+        call inorderWalk(nodes,nodes[root][1],result,tmp)
+        result[tmp[0]] += nodes[root][0]
+        tmp[0] += 1
+        call inorderWalk(nodes,nodes[root][2],result,tmp)
+    fi root != -1
+        
+procedure search(int nodes[], int root, int value, int index)
+    if root != -1 then
+        if nodes[root][0] = value then
+            index += root+1
+        else
+            if nodes[root][0] > value then
+                call search(nodes,nodes[root][1],value,index)
+            else
+                call search(nodes,nodes[root][2],value,index)
+            fi nodes[root][0] > value
+        fi nodes[root][0] = value
+    fi root != -1
+
+procedure search_iteratively(int nodes[], int root, int value, int index, int garbage)
+    local int current = 0
+    if nodes[root][0] = value then
+        index += root
+        current += root
+    else
+        garbage += root
+        if value < nodes[root][0] then
+            current += nodes[root][1]
+        else
+            current += nodes[root][2]
+        fi value < nodes[root][0]
+        from garbage = root
+        loop
+            garbage -= nodes[current][3]
+            garbage += current
+            if value = nodes[garbage][0] then
+                index += current
+            else
+                current -= garbage
+                if value < nodes[garbage][0] then
+                    current += nodes[garbage][1]
+                else
+                    current += nodes[garbage][2]
+                fi value < nodes[garbage][0]
+            fi value = nodes[garbage][0]
+        until current = -1 || index > 0
+    fi nodes[root][0] = value
+    
+    if current = -1 then
+        index -= 1
+    fi current = -1
+    delocal int current = index
+
+procedure minium(int nodes[], int node, int index)
+    if node != -1 then
+        if nodes[node][1] = -1 then
+            index += node
+        else
+            call minium(nodes,nodes[node][1],index)
+        fi nodes[node][1] = -1
+    fi node != -1
+
+procedure maximum(int nodes[], int node, int index)
+    if node != -1 then
+        if nodes[node][2] = -1 then
+            index += node
+        else
+            call maximum(nodes,nodes[node][2],index)
+        fi nodes[node][2] = -1
+    fi node != -1
+
+procedure minium_nonrec(int nodes[],int node, int index)
+    local int current = 0
+    current += node
+    from current = node
+    loop
+        local int temp = nodes[current][1]
+        current <=> temp
+        delocal int temp = nodes[current][3]
+    until nodes[current][1] = -1
+    
+    index += current
+    delocal int current = index
+
+
+procedure successor(int nodes[], int node,int successor)
+    if nodes[node][2] != -1 then
+        call minium(nodes,nodes[node][2],successor)
+    else
+        local int parent = nodes[node][3]
+        local int current = node
+        from current = node
+        loop
+            current <=> parent
+            parent -= nodes[current][2]
+            parent += nodes[current][3]
+        until parent = -1 || nodes[parent][2] != current
+        successor += parent
+        if successor != -1 then
+            current -= nodes[parent][1]
+        fi successor != -1
+        delocal int current = 0
+        delocal int parent = successor
+    fi nodes[node][2] != -1
+
+procedure insert(int nodes[],int treesize, int root, int value)
+    nodes[treesize][0] += value
+    nodes[treesize][1] += -1
+    nodes[treesize][2] += -1
+    if treesize = 0 then
+        nodes[treesize][3] += -1
+    else
+        local int index = 0
+        local int garbage = 0
+        call search_iteratively(nodes,root,value,index,garbage)
+        if nodes[garbage][0] = value then
+            error("duplicate value")
+            index -= garbage
+            index -= 1
+        fi nodes[garbage][0] = value
+        if value < nodes[garbage][0] then
+            nodes[garbage][1] += treesize+1
+        else
+            nodes[garbage][2] += treesize+1
+        fi value < nodes[garbage][0]
+        
+        nodes[treesize][3] += garbage
+        delocal int garbage = nodes[treesize][3]
+        delocal int index = -1
+    fi treesize = 0
+    treesize += 1
+    
+procedure transplant(int nodes[], int treesize, int root, int u, int v, int garbage[])
+    garbage[1] <=> nodes[u][0]  //value
+    garbage[2] <=> nodes[u][1]  //left
+    garbage[3] <=> nodes[u][2]  //right
+    garbage[4] <=> nodes[u][3]  //parent
+    
+    if root = u then
+        root -= u
+        root += v
+    fi root = v
+    
+    if u != treesize-1 then
+        local int parent = nodes[treesize-1][3]
+        nodes[u][0] <=> nodes[treesize-1][0]  //replace nodes[u] with nodes[treesize-1]
+        nodes[u][1] <=> nodes[treesize-1][1]
+        nodes[u][2] <=> nodes[treesize-1][2]
+        nodes[u][3] <=> nodes[treesize-1][3]
+        if nodes[parent][1] = treesize-1 then  //update nodes[treesize-1]'s parent
+            nodes[parent][1] -= (treesize-1)
+            nodes[parent][1] += u
+        fi nodes[parent][1] = u
+        if nodes[parent][2] = treesize-1 then
+            nodes[parent][2] -= (treesize-1)
+            nodes[parent][2] += u
+        fi nodes[parent][2] = u
+        delocal int parent = nodes[u][3]
+    fi u != treesize -1
+    
+    if garbage[4] != -1 then
+        if garbage[1] < nodes[garbage[4]][0] then
+            nodes[garbage[4]][1] -= u
+            nodes[garbage[4]][1] += v
+        else
+            nodes[garbage[4]][2] -= u
+            nodes[garbage[4]][2] += v
+        fi garbage[1] < nodes[garbage[4]][0]
+    fi garbage[4] != -1
+    
+    if v != -1 then   // if v != null   v.p = u.p
+        garbage[5] <=> nodes[v][3]
+        nodes[v][3] += garbage[4]
+    else
+        garbage[5] += -1
+    fi v != -1
+    
+    
+procedure delete(int nodes[], int treesize, int root, int value, int garbage[])
+    local int z = -1
+    call search(nodes,root,value,z)
+    garbage[0] += z //index
+    if z = -1 then
+        error("wrong value to delete")
+    fi z= -1
+    
+    if treesize = 1 then
+        garbage[1] += nodes[z][0]
+        nodes[z][0] -= garbage[1]
+        nodes[z][1] += 1
+        nodes[z][2] += 1
+        nodes[z][3] += 1
+        root -= 1
+    else
+        if nodes[z][1] = -1 then
+            local int right = nodes[z][2]
+            call transplant(nodes,treesize,root,z,right,garbage)
+            delocal int right = garbage[3]
+        else
+            if nodes[z][2] = -1 then
+                local int left = nodes[z][1]
+                call transplant(nodes,treesize,root,z,left,garbage)
+                delocal int left = garbage[2]
+            else
+                local int y = 0
+                call successor(nodes,z,y)
+                show(y)
+                local int yparent = nodes[y][3]
+                if yparent != z then
+                    //replace y with y's right child
+                    local int yright = nodes[y][2]
+                    show(yparent,yright)
+                    nodes[yright][3] -= y
+                    nodes[yright][3] += yparent
+                    nodes[yparent][1] -= y
+                    nodes[yparent][1] += yright
+                    //y.right = z.right
+                    nodes[y][2] -= yright
+                    nodes[y][2] += nodes[z][2]
+                    //z.right.parent = y
+                    local int zright = nodes[y][2]
+                    nodes[zright][3] -= z
+                    nodes[zright][3] += y
+                    delocal int zright = nodes[y][2]
+                    delocal int yright = nodes[yparent][1]
+                fi yparent != z
+                call transplant(nodes,treesize,root,z,y,garbage)
+                //y.left = z.left
+                nodes[y][1] += 1 // y.left = -1, because y is z's successor which means y is the most-left child
+                nodes[y][1] += garbage[2]
+                //z.left.p = y
+                nodes[garbage[2]][3] -= z
+                nodes[garbage[2]][3] += y
+                
+                delocal int yparent = garbage[5]
+                delocal int y = nodes[garbage[2]][3]
+            fi garbage[3] = -1
+        fi garbage[2] = -1
+    fi treesize = 1
+    treesize -= 1
+    delocal int z = garbage[0]
+    
+    
+procedure main()
+    int nodes[100][4] = {{5, 1, 2, -1}, {2, 4, 3, 0}, {10, 6, 5, 0}, {4, 7, -1, 1}, {1, -1, -1, 1}, {12, -1, -1, 2}, {8, -1, 8, 2}, {3, -1, -1, 3}, {9, -1, -1, 6}}
+    int treesize = 9
+    int root = 0
+    int garbage[size(nodes)] = {0}
+    int insert_item = 20
+    int delete_item = 5
+    call insert(nodes,treesize,root,insert_item)
+    call delete(nodes,treesize,root,delete_item,garbage)

@@ -1,0 +1,67 @@
+procedure main()
+    int nodes = 5
+    int W[nodes][nodes] = {{0,3,8,4294967295,-4},{4294967295,0,4294967295,1,7},{4294967295,4,0,4294967295,4294967295},{2,4294967295,-5,0,4294967295},{4294967295,4294967295,4294967295,6,0}}
+    int L[nodes][nodes][nodes] = {{{0}}}
+    int Lcounter = 0
+
+    
+    call all_pair_shortest(W, L, Lcounter)
+    
+procedure all_pair_shortest(int W[], int L[], int Lcounter)
+    local int n = size(W)
+    local int i = 0
+    from i = 0 do
+        local int j = 0
+        from j = 0 do
+            L[Lcounter][i][j] += W[i][j]
+            j += 1
+        until j = n
+        
+        i += 1
+        delocal int j = n
+    until i = n
+    delocal int i = n
+    Lcounter += 1
+    
+    local int m = 1
+    from m = 1 do
+        call extend_shortest(W, L, Lcounter)
+        Lcounter += 1
+        local int temp = m
+        m += temp
+        delocal int temp = m/2
+    until m = n - 1
+    
+    delocal int m = n - 1
+    delocal int n = size(W)
+    
+procedure extend_shortest(int W[], int L[], int Lcounter)
+    local int n = size(W), int i = 0
+    from i = 0 do
+        local int j = 0
+        from j = 0 do
+            local int min_w = 0
+            local stack gb = nil
+            min_w += 4294967295
+            call min(W, L, Lcounter, i, j, gb, min_w)
+            L[Lcounter][i][j] += min_w
+            uncall min(W, L, Lcounter, i, j, gb, min_w)
+            delocal stack gb = nil
+            delocal int min_w = 4294967295
+            j += 1
+        until j = n
+        i += 1
+        delocal int j = n
+    until i = n
+    delocal int n = size(W), int i = n
+    
+procedure min(int W[], int L[], int Lcounter, int i, int j, stack gb, int min_w)
+    local int k = 0
+    from k = 0 do
+        if  min_w >= L[Lcounter-1][i][k] + W[k][j] then
+            push(min_w,gb)
+            min_w += L[Lcounter-1][i][k] + W[k][j]
+        fi min_w = L[Lcounter-1][i][k] + W[k][j]
+        k += 1
+    until k = size(W)
+    delocal int k = size(W)

@@ -1,0 +1,39 @@
+//3.4 Black Red Tree
+procedure left_rotate(int nodes[], int root, int x)
+    local int y = nodes[x][2]  //y = x.right
+    nodes[x][2] -= y
+    nodes[x][2] += nodes[y][1]  //x.right = y.left
+    if nodes[y][1] != -1 then //if y.left != T.nil
+        local int yleft = nodes[y][1]
+        nodes[yleft][3] -= y
+        nodes[yleft][3] += x //y.left.p = x
+        delocal int yleft = nodes[x][2]
+    fi nodes[y][1] != -1  
+    nodes[y][3] -= x 
+    nodes[y][3] += nodes[x][3]  //y.p = x.p
+    if root = x then
+        root -= x
+        root += y  //T.root = y
+    else
+        local int xparent = nodes[x][3]
+        if nodes[xparent][1] = x then  //elseif x == x.p.left
+            nodes[xparent][1] -= x
+            nodes[xparent][1] += y   //x.p.left = y
+        else
+            nodes[xparent][2] -= x
+            nodes[xparent][2] += y  //x,p.right = y
+        fi nodes[xparent][1] = y
+        delocal int xparent = nodes[x][3]
+    fi root = y
+    
+    nodes[y][1] -= nodes[x][2]
+    nodes[y][1] += x  //y.left = x
+    nodes[x][3] -= nodes[y][3]
+    nodes[x][3] += y
+    
+    delocal int y = nodes[x][3]
+    
+procedure right_rotate(int nodes[], int root, int y)
+    local int x = nodes[y][1]
+    uncall left_rotate(nodes,root,x)
+    delocal int x = nodes[y][3]

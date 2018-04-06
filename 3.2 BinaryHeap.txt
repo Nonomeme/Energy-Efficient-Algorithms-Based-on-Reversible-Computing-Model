@@ -1,0 +1,72 @@
+//3.2 Binary heap
+procedure parent(int i, int parent)
+    parent += i / 2
+
+procedure left(int i, int left)
+    left += 2 * i
+
+procedure right(int i, int right)
+    right += 2 * i + 1
+    
+procedure minheapify(int A[], int heapsize, int i,int lastindex,int pow)
+    local int left = 0, int right = 0, int min = 0
+    call left(i, left)
+    call right(i, right)
+    
+    //Find the smallest note between i and the children of i
+    if left <= heapsize && A[left] < A[i] then
+        min += left
+        if right <= heapsize && A[right] < A[min] then
+            min -= left
+            min += right
+        fi right <= heapsize && A[right] < A[left]
+    else
+        min += i
+        if right <= heapsize && A[right] < A[min] then
+            min -= i
+            min += right
+        fi right <= heapsize && A[right] < A[i]
+    fi left <= heapsize && A[left] < A[i]
+
+    //if i isn't the smallest element, switch and call minheapify recursively
+    if min != i then
+        A[i] <=> A[min]
+        call minheapify(A, heapsize, min, lastindex,pow)
+    else
+        lastindex += min
+    fi min != i
+
+    //set the current min to 0
+    if min != i then
+        if lastindex / 2 = i && lastindex % 2 = 1 then
+            min -= 1
+        fi lastindex / 2 = i && lastindex % 2 = 1
+        
+        if lastindex % 2 = 0 then
+            min -= lastindex / pow
+        else
+            min -= (lastindex-1) / pow
+        fi lastindex % 2 = 0
+        local int tmp = pow * 2
+        tmp <=> pow
+        delocal int tmp = pow / 2
+    fi min = 0
+    
+    if i = lastindex then
+        min -= lastindex
+    fi i = lastindex
+    
+    uncall right(i, right)
+    uncall left(i, left)
+    delocal int left = 0, int right = 0, int min = 0
+        
+procedure main()
+    int A[] = {0, 9, 1, 2, 3, 7, 4, 8}
+    int heapsize = size(A)-1
+
+    int i = 1
+    int lastindex = 0
+    int pow = 1
+    
+    call minheapify(A, heapsize, i, lastindex, pow)
+    
