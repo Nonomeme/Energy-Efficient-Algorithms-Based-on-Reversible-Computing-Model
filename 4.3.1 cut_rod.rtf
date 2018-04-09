@@ -1,0 +1,39 @@
+{\rtf1\ansi\ansicpg936\cocoartf1561\cocoasubrtf400
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww10800\viewh8400\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 procedure bottom_up_cut_rod(int p[],int n,int r[])\
+    local int j = 1\
+    from j = 1 loop\
+        local stack gb = nil\
+        local int q = 0\
+        call min(p, r, j, q, gb)\
+        r[j] += q\
+        uncall min(p, r, j, q, gb)\
+        delocal int q = 0\
+        delocal stack gb = nil\
+        j += 1\
+    until j = n + 1\
+    \
+    delocal int j = n + 1\
+    \
+procedure min(int p[], int r[], int j, int q, stack gb)\
+    local int i = 1\
+    from i = 1 loop\
+        if q <= p[i]+r[j-i] then\
+            push(q,gb)\
+            q += (p[i]+r[j-i])\
+        fi q = p[i]+r[j-i]\
+        i += 1\
+    until i = j + 1\
+    delocal int i = j + 1\
+ \
+procedure main()\
+    int n = 10\
+    int p[n+1] = \{0,1,5,8,9,10,17,17,20,24,30\}\
+    int r[n+1] = \{0\}\
+        \
+    call bottom_up_cut_rod(p,n,r)}
